@@ -22,7 +22,10 @@ jobs:
         run: |
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
           test -n "$SDKMANAGER"
-          yes | "$SDKMANAGER" --licenses >/dev/null
+          # sdkmanager cierra la entrada al acabar; con `pipefail`, `yes` informa
+          # "Broken pipe" aunque todas las licencias ya hayan sido aceptadas.
+          # La instalación posterior conserva el fallo real si faltase un SDK.
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:

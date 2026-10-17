@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="I25Theme" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/i25_bg</item>
+        <item name="android:statusBarColor">@color/i25_dark</item>
+        <item name="android:colorPrimary">@color/i25_dark</item>
+        <item name="android:colorAccent">@color/i25_cyan</item>
+    </style>
+</resources>

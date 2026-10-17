@@ -1,0 +1,45 @@
+name: Build APK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Firma (keystore desde secretos del repo)
+        env:
+          KS_B64: ${{ secrets.I25_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS_B64" ]; then echo "$KS_B64" | base64 -d > $RUNNER_TEMP/i25.jks; echo "I25_KEYSTORE=$RUNNER_TEMP/i25.jks" >> $GITHUB_ENV; fi
+      - name: Compilar
+        env:
+          I25_KS_PASS: ${{ secrets.I25_KS_PASS }}
+          I25_VERSION_CODE: ${{ github.run_number }}
+          I25_VERSION_NAME: 1.0.${{ github.run_number }}
+        run: |
+          if [ -n "$I25_KEYSTORE" ]; then gradle --no-daemon assembleRelease; cp app/build/outputs/apk/release/app-release.apk internet25.apk; \
+          else gradle --no-daemon assembleDebug; cp app/build/outputs/apk/debug/app-debug.apk internet25.apk; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: internet25-apk
+          path: internet25.apk
+      - name: Publicar APK (release "ultima")
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ultima
+          name: Internet25 Comercio (ultima version)
+          body: "Version 1.0.${{ github.run_number }} compilada automaticamente."
+          files: internet25.apk
+          make_latest: true

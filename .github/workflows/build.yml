@@ -14,7 +14,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      # El runner ya incluye el SDK. `android-actions/setup-android@v3` intenta
+      # instalar el paquete legado `tools`, que ya no existe y detiene el build.
+      # Instalamos únicamente las plataformas que esta aplicación declara.
+      - name: Instalar Android SDK 34
+        shell: bash
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -n "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null
+          "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
